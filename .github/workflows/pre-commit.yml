@@ -14,10 +14,7 @@ jobs:
 
     - name: Install pre-commit
       run: |
-        apt-get update
-        apt-get install -y git
         pip install pre-commit
-        pre-commit install
 
     - name: Run pre-commit on all files
       run: |
