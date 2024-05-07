@@ -54,7 +54,7 @@ jobs:
 
       - name: Create Tag Name
         id: create_tag
-        run: echo "NEW_TAG=${{ env.MAJOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
+        run: echo "NEW_TAG=${{ env.OPEN_RAG_MAJOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Create Release
         id: create_release
