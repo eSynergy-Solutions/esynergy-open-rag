@@ -1,6 +1,13 @@
 name: Run Collibra Adaptor Sandbox deployment
 
-on: [ push, workflow_dispatch ]
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    branches:
+      - main
+
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
