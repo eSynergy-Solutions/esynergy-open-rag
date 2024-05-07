@@ -1,0 +1,22 @@
+name: Pre-commit Hooks
+
+on: [ pull_request, workflow_dispatch ]
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    environment: main
+    container:
+      image: adgonrodr/github-actions-terraform-python:latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install pre-commit
+      run: |
+        pip install pre-commit
+        pre-commit install
+
+    - name: Run pre-commit on all files
+      run: |
+        pre-commit run --all-files
