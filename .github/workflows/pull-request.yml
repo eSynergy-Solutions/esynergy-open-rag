@@ -1,6 +1,6 @@
 name: Run Collibra Adaptor Sandbox pull request
 
-on: [pull_request, workflow_dispatch]
+on: [ pull_request, workflow_dispatch ]
 
 concurrency:
   group: ${{ github.workflow }}
@@ -9,31 +9,37 @@ concurrency:
 jobs:
   run-open-rag-pull-request-check:
     runs-on: ubuntu-latest
+    environment: main
     container:
       image: adgonrodr/github-actions-terraform-python:latest
-    env:
-      MODEL_TYPE: ${{ vars.MODEL_TYPE }}
-      LLM_MODEL: ${{ vars.LLM_MODEL }}
-      EMBEDDING_MODEL: ${{ vars.EMBEDDING_MODEL }}
-      RETRIEVER_NAME: ${{ vars.RETRIEVER_NAME }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
-      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-      ASTRA_DB_KEYSPACE: ${{ vars.ASTRA_DB_KEYSPACE }}
-      ASTRA_DB_COLLECTION: ${{ vars.ASTRA_DB_COLLECTION }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
 
-      - name: Install dependencies
+      - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 - --version 1.4.0
+          echo "/github/home/.local/bin" >> $GITHUB_PATH
+
+      - name: Configure Poetry and Install Dependencies
+        run: |
           poetry config virtualenvs.create false
-          poetry install --extras "all"
+          poetry install
 
       - name: Test Open RAG
+        env:
+          MODEL_TYPE: ${{ vars.MODEL_TYPE }}
+          LLM_MODEL: ${{ vars.LLM_MODEL }}
+          EMBEDDING_MODEL: ${{ vars.EMBEDDING_MODEL }}
+          RETRIEVER_NAME: ${{ vars.RETRIEVER_NAME }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
+          ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+          ASTRA_DB_KEYSPACE: ${{ vars.ASTRA_DB_KEYSPACE }}
+          ASTRA_DB_COLLECTION: ${{ vars.ASTRA_DB_COLLECTION }}
         run: |
-          sh scripts/build_and_test.sh
+          bash scripts/build_and_test.sh
+        shell: bash

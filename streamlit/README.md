@@ -12,7 +12,7 @@ cd Streamlit
 #STREAMLIT_FEEDBACK_EMAIL=<feedback-email>
 #STREAMLIT_FEEDBACK_PASSWORD=<feedback-password>
 #STREAMLIT_PASSWORD=<steramlit-password>
-#RETREIVER_NAME=astradb
+#RETRIEVER_NAME=astradb
 #AWS_ACCESS_KEY_ID=<aws-access-key-id>
 #AWS_SECRET_ACCESS_KEY=<aws-secret-access-key>
 #ASTRA_DB_API_ENDPOINT=<astra-endpoint>
