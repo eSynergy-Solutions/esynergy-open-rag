@@ -18,5 +18,5 @@ llm = LLM(model_type=os.getenv("MODEL_TYPE"), model_name=os.getenv("LLM_MODEL"))
 
 embedding_model_name = os.getenv("EMBEDDING_MODEL")
 embeddings = Embedding(model_type="bedrock", model_name=embedding_model_name).embedding
-retriever = Retriever().get_retriever(os.getenv("RETREIVER_NAME"), embeddings)
+retriever = Retriever().get_retriever(os.getenv("RETRIEVER_NAME"), embeddings)
 chain = RAG(retriever=retriever, llm=llm).chain
