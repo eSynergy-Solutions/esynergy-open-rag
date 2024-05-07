@@ -42,7 +42,7 @@ jobs:
       - name: Configure Poetry and Install Dependencies
         run: |
           poetry config virtualenvs.create false
-          poetry install --extras "all"
+          poetry install
 
       - name: Test Open RAG
         run: |
