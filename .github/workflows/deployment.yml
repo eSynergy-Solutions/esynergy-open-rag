@@ -1,7 +1,6 @@
 name: Run Collibra Adaptor Sandbox deployment
 
 on:
-  pull_request:
   push:
     branches:
       - main
