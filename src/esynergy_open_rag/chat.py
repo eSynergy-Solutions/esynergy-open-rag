@@ -2,10 +2,10 @@ import logging
 import re
 import time
 
-from esynergy_open_rag.config import chain
 from streamlit_pills import pills
 
 import streamlit as st
+from esynergy_open_rag.config import chain
 from esynergy_open_rag.streamlit_components.sidebar_functions import update_sidebar
 from esynergy_open_rag.streamlit_components.streamlit_support import (
     get_button_links,

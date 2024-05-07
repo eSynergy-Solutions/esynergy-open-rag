@@ -2,7 +2,6 @@
 import logging
 
 import streamlit as st
-
 from esynergy_open_rag.chat import chat_here
 from esynergy_open_rag.streamlit_components.streamlit_support import (
     disclaimer,
@@ -30,7 +29,7 @@ css = """
 
 st.markdown(css, unsafe_allow_html=True)
 
-if 'authentication_status' in st.session_state:
+if "authentication_status" in st.session_state:
 
     if not st.session_state.authentication_status:
         disclaimer()
