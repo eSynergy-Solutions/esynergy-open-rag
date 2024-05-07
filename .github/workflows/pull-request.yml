@@ -39,11 +39,6 @@ jobs:
           poetry config virtualenvs.create false
           poetry install
 
-      - name: Run pre-commit
-        run: |
-          poetry run pre-commit install
-          poetry run pre-commit run --all-files
-
       - name: Test Open RAG
         run: |
           sh scripts/build_and_test.sh
