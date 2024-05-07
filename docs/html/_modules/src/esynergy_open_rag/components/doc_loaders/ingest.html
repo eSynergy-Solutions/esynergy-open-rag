@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.esynergy_open_rag.components.doc_loaders.ingest &mdash; Open RAG 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            Open RAG
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../modules.html">src</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">Open RAG</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.esynergy_open_rag.components.doc_loaders.ingest</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.esynergy_open_rag.components.doc_loaders.ingest</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">langchain.text_splitter</span> <span class="kn">import</span> <span class="n">RecursiveCharacterTextSplitter</span>
+<span class="kn">from</span> <span class="nn">langchain_community.document_loaders</span> <span class="kn">import</span> <span class="n">DirectoryLoader</span><span class="p">,</span> <span class="n">WebBaseLoader</span>
+<span class="kn">from</span> <span class="nn">langchain_community.document_loaders.sitemap</span> <span class="kn">import</span> <span class="n">SitemapLoader</span>
+<span class="kn">from</span> <span class="nn">langchain_community.vectorstores</span> <span class="kn">import</span> <span class="n">FAISS</span>
+
+
+<div class="viewcode-block" id="VectorIngestor">
+<a class="viewcode-back" href="../../../../../src.esynergy_open_rag.components.doc_loaders.html#src.esynergy_open_rag.components.doc_loaders.ingest.VectorIngestor">[docs]</a>
+<span class="k">class</span> <span class="nc">VectorIngestor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for ingesting and processing vector data.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        embeddings (str): The type of embeddings to use.</span>
+<span class="sd">        vector_store_type (str): The type of vector store to use.</span>
+<span class="sd">        index_path (str, optional): The path to save the index file. Defaults to &quot;faiss.index&quot;.</span>
+<span class="sd">        source_type (str, optional): The type of data source. Defaults to &quot;directory&quot;.</span>
+<span class="sd">        source (str, optional): The source of the data. Defaults to &quot;uploaded_pdfs&quot;.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        embeddings (str): The type of embeddings being used.</span>
+<span class="sd">        vector_store_type (str): The type of vector store being used.</span>
+<span class="sd">        index_path (str): The path to the index file.</span>
+<span class="sd">        vector_store (object): The vector store object.</span>
+<span class="sd">        source (str): The source of the data.</span>
+<span class="sd">        source_type (str): The type of data source.</span>
+<span class="sd">        docs (list): The loaded documents.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">embeddings</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">vector_store_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">index_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;faiss.index&quot;</span><span class="p">,</span>
+        <span class="n">source_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;directory&quot;</span><span class="p">,</span>
+        <span class="n">source</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;uploaded_pdfs&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize a VectorIngestor instance.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            embeddings (str): The type of embeddings to use.</span>
+<span class="sd">            vector_store_type (str): The type of vector store to use.</span>
+<span class="sd">            index_path (str, optional): The path to save the index file. Defaults to &quot;faiss.index&quot;.</span>
+<span class="sd">            source_type (str, optional): The type of data source. Defaults to &quot;directory&quot;.</span>
+<span class="sd">            source (str, optional): The source of the data. Defaults to &quot;uploaded_pdfs&quot;.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embeddings</span> <span class="o">=</span> <span class="n">embeddings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vector_store_type</span> <span class="o">=</span> <span class="n">vector_store_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index_path</span> <span class="o">=</span> <span class="n">index_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vector_store</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="n">source</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_type</span> <span class="o">=</span> <span class="n">source_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">docs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_from_source</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_load_from_source</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load documents from the specified source.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: The loaded documents.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_type</span> <span class="o">==</span> <span class="s2">&quot;directory&quot;</span><span class="p">:</span>
+            <span class="n">loader</span> <span class="o">=</span> <span class="n">DirectoryLoader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">,</span> <span class="n">glob</span><span class="o">=</span><span class="s2">&quot;**/*.pdf&quot;</span><span class="p">)</span>
+            <span class="n">docs</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">docs</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_type</span> <span class="o">==</span> <span class="s2">&quot;sitemap&quot;</span><span class="p">:</span>
+            <span class="c1"># langchain sitemap loader</span>
+            <span class="n">sitemap_loader</span> <span class="o">=</span> <span class="n">SitemapLoader</span><span class="p">(</span><span class="n">web_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+            <span class="n">docs</span> <span class="o">=</span> <span class="n">sitemap_loader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">docs</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_type</span> <span class="o">==</span> <span class="s2">&quot;websites&quot;</span><span class="p">:</span>
+            <span class="c1"># langchain website loader</span>
+            <span class="n">website_loader</span> <span class="o">=</span> <span class="n">WebBaseLoader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
+            <span class="n">docs</span> <span class="o">=</span> <span class="n">website_loader</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">docs</span>
+
+<div class="viewcode-block" id="VectorIngestor.document_splitter">
+<a class="viewcode-back" href="../../../../../src.esynergy_open_rag.components.doc_loaders.html#src.esynergy_open_rag.components.doc_loaders.ingest.VectorIngestor.document_splitter">[docs]</a>
+    <span class="k">def</span> <span class="nf">document_splitter</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Split the loaded documents into smaller chunks.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: The split texts.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">text_splitter</span> <span class="o">=</span> <span class="n">RecursiveCharacterTextSplitter</span><span class="p">(</span>
+            <span class="n">chunk_size</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+            <span class="n">chunk_overlap</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+            <span class="n">length_function</span><span class="o">=</span><span class="nb">len</span><span class="p">,</span>
+            <span class="n">is_separator_regex</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">docs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_from_source</span><span class="p">()</span>
+        <span class="n">texts</span> <span class="o">=</span> <span class="n">text_splitter</span><span class="o">.</span><span class="n">split_documents</span><span class="p">(</span><span class="n">docs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">texts</span></div>
+
+
+<div class="viewcode-block" id="VectorIngestor.ingest_documents">
+<a class="viewcode-back" href="../../../../../src.esynergy_open_rag.components.doc_loaders.html#src.esynergy_open_rag.components.doc_loaders.ingest.VectorIngestor.ingest_documents">[docs]</a>
+    <span class="k">def</span> <span class="nf">ingest_documents</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ingest the documents into the vector store.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">texts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">document_splitter</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vector_store_type</span> <span class="o">==</span> <span class="s2">&quot;FAISS&quot;</span><span class="p">:</span>
+            <span class="n">vector_store</span> <span class="o">=</span> <span class="n">FAISS</span><span class="o">.</span><span class="n">from_documents</span><span class="p">(</span><span class="n">texts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">embeddings</span><span class="p">)</span>
+            <span class="c1"># append to the existing index</span>
+            <span class="c1"># check if self.index_path exists on the disk if so load it</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_path</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">load_vector_store</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">vector_store</span><span class="o">.</span><span class="n">merge_from</span><span class="p">(</span><span class="n">vector_store</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">vector_store</span> <span class="o">=</span> <span class="n">vector_store</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vector_store</span><span class="o">.</span><span class="n">save_local</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_path</span><span class="p">)</span></div>
+
+        <span class="c1"># Add more vector store types here if needed</span>
+
+<div class="viewcode-block" id="VectorIngestor.load_vector_store">
+<a class="viewcode-back" href="../../../../../src.esynergy_open_rag.components.doc_loaders.html#src.esynergy_open_rag.components.doc_loaders.ingest.VectorIngestor.load_vector_store">[docs]</a>
+    <span class="k">def</span> <span class="nf">load_vector_store</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load the vector store from the index file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vector_store_type</span> <span class="o">==</span> <span class="s2">&quot;FAISS&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vector_store</span> <span class="o">=</span> <span class="n">FAISS</span><span class="o">.</span><span class="n">load_local</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">index_path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">embeddings</span><span class="p">)</span></div>
+
+        <span class="c1"># Add more vector store types here if needed</span>
+
+<div class="viewcode-block" id="VectorIngestor.search_similar_documents">
+<a class="viewcode-back" href="../../../../../src.esynergy_open_rag.components.doc_loaders.html#src.esynergy_open_rag.components.doc_loaders.ingest.VectorIngestor.search_similar_documents">[docs]</a>
+    <span class="k">def</span> <span class="nf">search_similar_documents</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Search for similar documents based on the given query.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            query (str): The query text.</span>
+<span class="sd">            k (int, optional): The number of similar documents to retrieve. Defaults to 5.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: The similar documents.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the vector store is not loaded.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vector_store</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Vector store not loaded&quot;</span><span class="p">)</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vector_store</span><span class="o">.</span><span class="n">similarity_search</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Adrian Gonzalez.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

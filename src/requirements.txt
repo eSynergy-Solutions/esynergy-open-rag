@@ -1,0 +1,18 @@
+streamlit
+streamlit_feedback
+langchain
+langsmith
+# fastapi
+# streamlit
+gpt4all
+faiss-cpu
+python-dotenv
+unstructured
+streamlit-pills
+langchain-community
+tavily-python
+langchain-google-genai
+streamlit-option-menu
+boto3
+requests-aws4auth
+opensearch-py

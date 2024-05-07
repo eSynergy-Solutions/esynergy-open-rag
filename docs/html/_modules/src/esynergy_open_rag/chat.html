@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.esynergy_open_rag.chat &mdash; Open RAG 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Open RAG
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules.html">src</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Open RAG</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.esynergy_open_rag.chat</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.esynergy_open_rag.chat</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">from</span> <span class="nn">esynergy_open_rag.config</span> <span class="kn">import</span> <span class="n">chain</span>
+<span class="kn">from</span> <span class="nn">streamlit_pills</span> <span class="kn">import</span> <span class="n">pills</span>
+
+<span class="kn">import</span> <span class="nn">streamlit</span> <span class="k">as</span> <span class="nn">st</span>
+<span class="kn">from</span> <span class="nn">esynergy_open_rag.streamlit_components.sidebar_functions</span> <span class="kn">import</span> <span class="n">update_sidebar</span>
+<span class="kn">from</span> <span class="nn">esynergy_open_rag.streamlit_components.streamlit_support</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_button_links</span><span class="p">,</span>
+    <span class="n">start_countdown</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">css</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">&lt;style&gt;</span>
+<span class="s2">    [data-testid=&quot;stSidebar&quot;]{</span>
+<span class="s2">        min-width: 0px;</span>
+<span class="s2">        max-width: 700px;</span>
+<span class="s2">    }</span>
+<span class="s2">&lt;/style&gt;</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="n">collector</span> <span class="o">=</span> <span class="kc">None</span>
+
+<span class="n">widget_id</span> <span class="o">=</span> <span class="p">(</span><span class="nb">id</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10000</span><span class="p">))</span>
+
+
+<div class="viewcode-block" id="chat_here">
+<a class="viewcode-back" href="../../../src.esynergy_open_rag.html#src.esynergy_open_rag.chat.chat_here">[docs]</a>
+<span class="k">def</span> <span class="nf">chat_here</span><span class="p">(</span><span class="n">placeholder</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main function to manage the chat interface.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        placeholder: A placeholder container to update the sidebar.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Display chat messages from history on app rerun</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">messages</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">message</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">messages</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">chat_message</span><span class="p">(</span><span class="n">message</span><span class="p">[</span><span class="s2">&quot;role&quot;</span><span class="p">]):</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="n">message</span><span class="p">[</span><span class="s2">&quot;content&quot;</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="n">message</span><span class="p">[</span><span class="s2">&quot;role&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;assistant&quot;</span> <span class="ow">and</span> <span class="n">n</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">feedback_key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;feedback_</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+                <span class="k">if</span> <span class="n">feedback_key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">:</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="n">feedback_key</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="s2">&quot;button_source&quot;</span> <span class="ow">in</span> <span class="n">message</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">message</span><span class="p">[</span><span class="s2">&quot;button_source&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">expander</span><span class="p">(</span><span class="s2">&quot;Click to view Sources&quot;</span><span class="p">,</span> <span class="n">expanded</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                    <span class="n">selected</span> <span class="o">=</span> <span class="n">pills</span><span class="p">(</span>
+                        <span class="s2">&quot;Source&quot;</span><span class="p">,</span>
+                        <span class="nb">list</span><span class="p">(</span><span class="n">message</span><span class="p">[</span><span class="s2">&quot;button_source&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
+                        <span class="n">key</span><span class="o">=</span><span class="nb">next</span><span class="p">(</span><span class="n">widget_id</span><span class="p">),</span>
+                        <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">selected</span><span class="p">:</span>
+                        <span class="n">placeholder</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+                        <span class="c1"># ToDo: Add the relevant function</span>
+                        <span class="n">update_sidebar</span><span class="p">(</span><span class="n">selected</span><span class="p">,</span> <span class="n">placeholder</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">)</span>
+
+    <span class="c1"># Accept user input</span>
+    <span class="k">if</span> <span class="n">prompt</span> <span class="o">:=</span> <span class="n">st</span><span class="o">.</span><span class="n">chat_input</span><span class="p">(</span><span class="s2">&quot;What is up?&quot;</span><span class="p">):</span>
+        <span class="c1"># Add user message to chat history</span>
+
+        <span class="c1"># Display user message in chat message container</span>
+        <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">chat_message</span><span class="p">(</span><span class="s2">&quot;user&quot;</span><span class="p">):</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
+
+        <span class="c1"># Display assistant response in chat message container</span>
+        <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">chat_message</span><span class="p">(</span><span class="s2">&quot;assistant&quot;</span><span class="p">):</span>
+            <span class="n">message_placeholder</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+            <span class="n">full_response</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">spinner</span><span class="p">(</span><span class="s2">&quot;Fetching the Response for your Query from the AI Engine...&quot;</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">response</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">invoke</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="n">response</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;answer&quot;</span><span class="p">:</span> <span class="s2">&quot;Sorry, I didn&#39;t get that. Please try again.&quot;</span><span class="p">}</span>
+                    <span class="n">message_placeholder</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="n">response</span><span class="p">[</span><span class="s2">&quot;answer&quot;</span><span class="p">])</span>
+                    <span class="n">start_countdown</span><span class="p">()</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">assistant_response</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;answer&quot;</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="n">assistant_response</span> <span class="o">=</span> <span class="s2">&quot;Sorry, I didn&#39;t get that. Please try again.&quot;</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span> <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">})</span>
+            <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(\s+)&quot;</span><span class="p">,</span> <span class="n">assistant_response</span><span class="p">):</span>
+                <span class="n">full_response</span> <span class="o">+=</span> <span class="n">chunk</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span>
+                <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.05</span><span class="p">)</span>
+                <span class="c1"># Add a blinking cursor to simulate typing</span>
+                <span class="n">message_placeholder</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="n">full_response</span> <span class="o">+</span> <span class="s2">&quot;▌&quot;</span><span class="p">)</span>
+            <span class="n">message_placeholder</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">full_response</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">button_links</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="c1"># count = 0</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">button_links</span> <span class="o">=</span> <span class="n">get_button_links</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
+                <span class="c1"># print(f&quot;button_links {button_links}&quot;)</span>
+                <span class="c1"># link_markdown = create_markdown(button_links)</span>
+
+                <span class="c1"># pills(&quot;Source&quot;, list(button_links.keys()),key=next(widget_id))</span>
+                <span class="c1"># selected_current = None</span>
+                <span class="c1"># selected_current = pills(&quot;Source&quot;, list(button_links.keys()), key=next(widget_id))</span>
+                <span class="c1"># update_sidebar(selected=selected_current,</span>
+                <span class="c1">#                placeholder=placeholder)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;*No source documents found*&quot;</span><span class="p">)</span>
+
+        <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">history</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;Human&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">,</span> <span class="s2">&quot;AI&quot;</span><span class="p">:</span> <span class="n">assistant_response</span><span class="p">})</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">messages</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;assistant&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">full_response</span><span class="p">,</span>
+                <span class="s2">&quot;prompt&quot;</span><span class="p">:</span> <span class="n">prompt</span><span class="p">,</span>
+                <span class="s2">&quot;button_source&quot;</span><span class="p">:</span> <span class="n">button_links</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">rerun</span><span class="p">()</span>
+
+    <span class="n">footer</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;&lt;style&gt;</span>
+<span class="s2">    a:link , a:visited{</span>
+<span class="s2">    color: blue;</span>
+<span class="s2">    background-color: transparent;</span>
+<span class="s2">    text-decoration: underline;</span>
+<span class="s2">    }</span>
+
+<span class="s2">    a:hover,  a:active {</span>
+<span class="s2">    color: red;</span>
+<span class="s2">    background-color: transparent;</span>
+<span class="s2">    text-decoration: underline;</span>
+<span class="s2">    }</span>
+
+<span class="s2">    .footer {</span>
+<span class="s2">    position: fixed;</span>
+<span class="s2">    left: 0;</span>
+<span class="s2">    bottom: 0;</span>
+<span class="s2">    width: 100%;</span>
+<span class="s2">    background-color: white;</span>
+<span class="s2">    color: black;</span>
+<span class="s2">    text-align: center;</span>
+<span class="s2">    }</span>
+<span class="s2">    &lt;/style&gt;</span>
+<span class="s2">    &quot;&quot;&quot;</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="n">footer</span><span class="p">,</span> <span class="n">unsafe_allow_html</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Adrian Gonzalez.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,75 @@
+[tool.poetry]
+name = "open-rag"
+version = "0.2.0"
+description = ""
+authors = ["Adrian Gonzalez <adrian.gonzalez@esynergy.co.uk>"]
+packages = [
+    { include = "esynergy_open_rag", from = "src" },
+]
+
+[tool.black]
+line-length = 120
+target-version = ['py310']
+
+[tool.isort]
+profile = "black"
+
+[tool.poetry.scripts]
+openrag = "openrag.main:app"
+
+
+[tool.poetry.dependencies]
+# Build and test
+python = "^3.9,<4.0"
+setuptools = "^68.2.2"
+
+# Open RAG Dependencies
+streamlit = "*"
+streamlit_feedback = "*"
+langchain = "*"
+langsmith = "*"
+gpt4all = "*"
+faiss-cpu = "*"
+unstructured = "*"
+streamlit-pills = "*"
+langchain-community = "*"
+tavily-python = "*"
+langchain-google-genai = "*"
+streamlit-option-menu = "*"
+boto3 = "*"
+requests-aws4auth = "*"
+opensearch-py = "*"
+grpcio = "^1.62.2"
+altair = "^5.3.0"
+langchain-astradb = "^0.2.0"
+sphinx-rtd-theme = "^2.0.0"
+
+[tool.poetry.dev-dependencies]
+# Build and test
+pre-commit = "^2.13.0"
+pytest = "^6.2.4"
+python-dotenv = "^0.18.0"
+Sphinx = "^7.3.5"
+black = "22.3.0"
+mypy = "0.991"
+isort = "5.10.1"
+
+
+[tool.poetry.group.dev.dependencies]
+sphinx-autodoc-typehints = "^2.1.0"
+sphinx-rtd-theme = "^2.0.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+# https://github.com/mtkennerly/poetry-dynamic-versioning
+# we can use this in github actions by running `poetry run poetry-dynamic-versioning`
+#[tool.poetry-dynamic-versioning]
+#vcs = "git"
+#pattern = "^(?P<base>\\d+\\.\\d+\\.\\d+)"
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:::slack_sdk"
+]
