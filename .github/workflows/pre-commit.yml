@@ -15,6 +15,7 @@ jobs:
     - name: Install pre-commit
       run: |
         pip install pre-commit
+        echo "/github/home/.local/bin" >> $GITHUB_PATH
 
     - name: Run pre-commit on all files
       run: |
