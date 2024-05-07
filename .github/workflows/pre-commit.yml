@@ -9,14 +9,11 @@ jobs:
     container:
       image: adgonrodr/github-actions-terraform-python:latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Install pre-commit
-      run: |
-        pip install pre-commit
-        echo "/github/home/.local/bin" >> $GITHUB_PATH
+      - name: Install pre-commit
+        uses: actions/setup-python@v3
 
-    - name: Run pre-commit on all files
-      run: |
-        pre-commit run --all-files
+      - name: Run pre-commit on all files
+        uses: pre-commit/action@v3.0.1
