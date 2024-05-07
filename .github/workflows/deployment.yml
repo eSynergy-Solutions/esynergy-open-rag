@@ -34,9 +34,13 @@ jobs:
         with:
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
 
-      - name: Install dependencies
+      - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 - --version 1.4.0
+          echo "/github/home/.local/bin" >> $GITHUB_PATH
+
+      - name: Configure Poetry and Install Dependencies
+        run: |
           poetry config virtualenvs.create false
           poetry install --extras "all"
 

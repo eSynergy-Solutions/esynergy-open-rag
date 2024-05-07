@@ -1,6 +1,6 @@
 name: Run Collibra Adaptor Sandbox pull request
 
-on: [pull_request, workflow_dispatch]
+on: [ pull_request, workflow_dispatch ]
 
 concurrency:
   group: ${{ github.workflow }}
@@ -29,9 +29,13 @@ jobs:
         with:
           token: ${{ secrets.PERSONAL_GITHUB_TOKEN }}
 
-      - name: Install dependencies
+      - name: Install Poetry
         run: |
           curl -sSL https://install.python-poetry.org | python3 - --version 1.4.0
+          echo "/github/home/.local/bin" >> $GITHUB_PATH
+
+      - name: Configure Poetry and Install Dependencies
+        run: |
           poetry config virtualenvs.create false
           poetry install --extras "all"
 
