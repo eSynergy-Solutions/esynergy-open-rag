@@ -18,16 +18,7 @@ jobs:
     container:
       image: adgonrodr/github-actions-terraform-python:latest
     env:
-      MODEL_TYPE: ${{ vars.MODEL_TYPE }}
-      LLM_MODEL: ${{ vars.LLM_MODEL }}
-      EMBEDDING_MODEL: ${{ vars.EMBEDDING_MODEL }}
-      RETRIEVER_NAME: ${{ vars.RETRIEVER_NAME }}
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
-      ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
-      ASTRA_DB_KEYSPACE: ${{ vars.ASTRA_DB_KEYSPACE }}
-      ASTRA_DB_COLLECTION: ${{ vars.ASTRA_DB_COLLECTION }}
+      OPEN_RAG_MAJOR_VERSION: v1.0
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -45,9 +36,24 @@ jobs:
           poetry install
 
       - name: Test Open RAG
+        env:
+          MODEL_TYPE: ${{ vars.MODEL_TYPE }}
+          LLM_MODEL: ${{ vars.LLM_MODEL }}
+          EMBEDDING_MODEL: ${{ vars.EMBEDDING_MODEL }}
+          RETRIEVER_NAME: ${{ vars.RETRIEVER_NAME }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          ASTRA_DB_API_ENDPOINT: ${{ secrets.ASTRA_DB_API_ENDPOINT }}
+          ASTRA_DB_APPLICATION_TOKEN: ${{ secrets.ASTRA_DB_APPLICATION_TOKEN }}
+          ASTRA_DB_KEYSPACE: ${{ vars.ASTRA_DB_KEYSPACE }}
+          ASTRA_DB_COLLECTION: ${{ vars.ASTRA_DB_COLLECTION }}
         run: |
           bash scripts/build_and_test.sh
         shell: bash
+
+      - name: Create Tag Name
+        id: create_tag
+        run: echo "NEW_TAG=${{ env.OPEN_RAG_MAJOR_VERSION }}.${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Create Release
         id: create_release
@@ -55,8 +61,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: ${{ env.NEW_TAG }}
+          release_name: Release ${{ env.NEW_TAG }}
           draft: false
           prerelease: false
 
