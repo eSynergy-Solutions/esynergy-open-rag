@@ -46,7 +46,8 @@ jobs:
 
       - name: Test Open RAG
         run: |
-          sh scripts/build_and_test.sh
+          bash scripts/build_and_test.sh
+        shell: bash
 
       - name: Create Release
         id: create_release
