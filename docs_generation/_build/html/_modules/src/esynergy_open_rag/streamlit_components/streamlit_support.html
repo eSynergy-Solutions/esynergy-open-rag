@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.esynergy_open_rag.streamlit_components.streamlit_support &mdash; Open RAG 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+
+
+          <a href="../../../../index.html" class="icon icon-home">
+            Open RAG
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules.html">src</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Open RAG</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.esynergy_open_rag.streamlit_components.streamlit_support</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <h1>Source code for src.esynergy_open_rag.streamlit_components.streamlit_support</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">hmac</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">unquote</span>
+
+<span class="kn">import</span> <span class="nn">streamlit</span> <span class="k">as</span> <span class="nn">st</span>
+<span class="kn">from</span> <span class="nn">streamlit.runtime.scriptrunner</span> <span class="kn">import</span> <span class="n">get_script_run_ctx</span>
+
+
+<div class="viewcode-block" id="get_remote_ip">
+<a class="viewcode-back" href="../../../../src.esynergy_open_rag.streamlit_components.html#src.esynergy_open_rag.streamlit_components.streamlit_support.get_remote_ip">[docs]</a>
+<span class="k">def</span> <span class="nf">get_remote_ip</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the remote IP address of the Streamlit session.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str | None: The remote IP address if available, else None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">ctx</span> <span class="o">=</span> <span class="n">get_script_run_ctx</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ctx</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">runtime</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">runtime</span>
+        <span class="n">session_info</span> <span class="o">=</span> <span class="n">runtime</span><span class="o">.</span><span class="n">get_instance</span><span class="p">()</span><span class="o">.</span><span class="n">get_client</span><span class="p">(</span><span class="n">ctx</span><span class="o">.</span><span class="n">session_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">session_info</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">session_info</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span></div>
+
+
+
+<div class="viewcode-block" id="check_password">
+<a class="viewcode-back" href="../../../../src.esynergy_open_rag.streamlit_components.html#src.esynergy_open_rag.streamlit_components.streamlit_support.check_password">[docs]</a>
+<span class="k">def</span> <span class="nf">check_password</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check if the user-entered password matches the secret password.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: True if the password is correct, False otherwise.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">password_entered</span><span class="p">():</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Checks whether a password entered by the user is correct.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">hmac</span><span class="o">.</span><span class="n">compare_digest</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">],</span> <span class="n">st</span><span class="o">.</span><span class="n">secrets</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">]):</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;password_correct&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">del</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">]</span>  <span class="c1"># Don&#39;t store the password.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">[</span><span class="s2">&quot;password_correct&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># Return True if the passward is validated.</span>
+    <span class="k">if</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;password_correct&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="c1"># Show input for password.</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;Password&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;password&quot;</span><span class="p">,</span> <span class="n">on_change</span><span class="o">=</span><span class="n">password_entered</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s2">&quot;password&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;password_correct&quot;</span> <span class="ow">in</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;😕 Password incorrect&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="create_markdown">
+<a class="viewcode-back" href="../../../../src.esynergy_open_rag.streamlit_components.html#src.esynergy_open_rag.streamlit_components.streamlit_support.create_markdown">[docs]</a>
+<span class="k">def</span> <span class="nf">create_markdown</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create Markdown text from a dictionary.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dt (dict): Dictionary containing source information.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Markdown text containing source links.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">markdown_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dt</span><span class="p">:</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="n">dt</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s2">&quot;source&quot;</span><span class="p">]</span>
+        <span class="n">markdown_text</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;- [</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">](</span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s2">) </span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="k">return</span> <span class="n">markdown_text</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">_submit_feedback</span><span class="p">(</span><span class="n">user_response</span><span class="p">,</span> <span class="n">emoji</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Submit user feedback and display a toast message.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        user_response (_type_): The user&#39;s feedback.</span>
+<span class="sd">        emoji (str, optional): Emoji to display in the toast message. Defaults to None.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: Updated user response with metadata.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">toast</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Feedback submitted: </span><span class="si">{</span><span class="n">user_response</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="n">emoji</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">user_response</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;some metadata&quot;</span><span class="p">:</span> <span class="mi">123</span><span class="p">})</span>
+
+
+<div class="viewcode-block" id="set_header">
+<a class="viewcode-back" href="../../../../src.esynergy_open_rag.streamlit_components.html#src.esynergy_open_rag.streamlit_components.streamlit_support.set_header">[docs]</a>
+<span class="k">def</span> <span class="nf">set_header</span><span class="p">(</span><span class="n">col1_title</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set the header for the Streamlit app.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        col1_title: The title for the header column.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">col1_title</span><span class="p">:</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="s2">&quot;https://esynergy.co.uk/wp-content/themes/esynergy/images/eSynergy-Logo-1.png&quot;</span><span class="p">)</span>
+    <span class="c1"># with col2_title:</span>
+    <span class="c1">#     st.title(&quot;CoPilot&quot;)</span>
+
+    <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">expander</span><span class="p">(</span><span class="s2">&quot;User Information&quot;</span><span class="p">,</span> <span class="n">expanded</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;##### GenAI App MVP Overview:&quot;&quot;&quot;</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span>
+            <span class="s2">&quot;With this app, you can: **Search, summarise, and generate documents** (PDF, Word, and PowerPoint) &quot;</span>
+            <span class="s2">&quot;from our bid repository.&quot;</span>
+        <span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;Example query:&quot;</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;&gt; Give me a summary of the Northern Trust Data Mesh    case study.&quot;</span><span class="p">)</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;&gt; Create a proposal similar to Utmost with these    specific details.&quot;</span><span class="p">)</span>
+
+        <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;        *Please note: Chat history is not stored; each query is treated as a new session.* &quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_email">
+<a class="viewcode-back" href="../../../../src.esynergy_open_rag.streamlit_components.html#src.esynergy_open_rag.streamlit_components.streamlit_support.get_email">[docs]</a>
+<span class="k">def</span> <span class="nf">get_email</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the user&#39;s email address and validate it.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: True if the email is valid, False otherwise.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span> <span class="nn">re</span>
+
+    <span class="kn">import</span> <span class="nn">streamlit</span> <span class="k">as</span> <span class="nn">st</span>
+
+    <span class="n">regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^[7896]\d</span><span class="si">{9}</span><span class="s2">$&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">is_valid</span><span class="p">(</span><span class="n">input_email</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">regex</span><span class="p">,</span> <span class="n">input_email</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">expander</span><span class="p">(</span><span class="s2">&quot;User Information&quot;</span><span class="p">,</span> <span class="n">expanded</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">form</span><span class="p">(</span><span class="s2">&quot;email_form&quot;</span><span class="p">):</span>
+            <span class="n">email</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">text_input</span><span class="p">(</span><span class="s2">&quot;Enter the Email&quot;</span><span class="p">)</span>
+            <span class="c1"># Every form must have a submit button.</span>
+            <span class="n">submitted</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">form_submit_button</span><span class="p">(</span><span class="s2">&quot;Submit Email &amp; Try Chatbot&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">submitted</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">is_valid</span><span class="p">(</span><span class="n">email</span><span class="p">):</span>
+                    <span class="c1"># st.write(&quot;Valid Email&quot;)</span>
+                    <span class="c1"># st.write(&quot;input_email&quot;, input_email)</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">authentication_status</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">user_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">email</span><span class="p">)</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">snow</span><span class="p">()</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">rerun</span><span class="p">()</span>
+                    <span class="k">return</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">authentication_status</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">authentication_status</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="n">st</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid Email&quot;</span><span class="p">,</span> <span class="n">icon</span><span class="o">=</span><span class="s2">&quot;🚨&quot;</span><span class="p">)</span>
+                    <span class="c1"># st.write(&quot;Invalid Email&quot;)</span>
+    <span class="k">return</span> <span class="n">st</span><span class="o">.</span><span class="n">session_state</span><span class="o">.</span><span class="n">authentication_status</span></div>
+
+
+
+<div class="viewcode-block" id="get_button_links">
+<a class="viewcode-back" href="../../../../src.esynergy_open_rag.streamlit_components.html#src.esynergy_open_rag.streamlit_components.streamlit_support.get_button_links">[docs]</a>
+<span class="k">def</span> <span class="nf">get_button_links</span><span class="p">(</span><span class="n">response</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract button links from the response data.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        response (_type_): The response data containing context information.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: Dictionary containing button links and associated content.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">button_links</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">counbt</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">response</span><span class="p">[</span><span class="s2">&quot;context&quot;</span><span class="p">]:</span>
+        <span class="c1"># print(doc)</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;page_content&quot;</span><span class="p">]):</span>
+            <span class="c1"># print(data)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="n">unquote</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">][</span><span class="s2">&quot;title&quot;</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="n">counbt</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">counbt</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Excerpt:&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">counbt</span><span class="p">)</span>
+            <span class="c1"># source=data[&quot;metadata&quot;][&quot;source&quot;]</span>
+            <span class="c1"># content=unquote(data[&quot;page_content&quot;])</span>
+            <span class="k">if</span> <span class="n">title</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">button_links</span><span class="p">:</span>
+                <span class="n">button_links</span><span class="p">[</span><span class="n">title</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">button_links</span><span class="p">[</span><span class="n">title</span><span class="p">][</span><span class="s2">&quot;source&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="n">button_links</span><span class="p">[</span><span class="n">title</span><span class="p">][</span><span class="s2">&quot;content&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">button_links</span><span class="p">[</span><span class="n">title</span><span class="p">][</span><span class="s2">&quot;source&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;metadata&quot;</span><span class="p">][</span><span class="s2">&quot;source&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;s3://data-rag/&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">button_links</span><span class="p">[</span><span class="n">title</span><span class="p">][</span><span class="s2">&quot;content&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unquote</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;page_content&quot;</span><span class="p">]))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">continue</span>
+    <span class="k">return</span> <span class="n">button_links</span></div>
+
+
+
+<div class="viewcode-block" id="start_countdown">
+<a class="viewcode-back" href="../../../../src.esynergy_open_rag.streamlit_components.html#src.esynergy_open_rag.streamlit_components.streamlit_support.start_countdown">[docs]</a>
+<span class="k">def</span> <span class="nf">start_countdown</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Display a countdown message for a specified duration.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        n (int, optional): The duration of the countdown in seconds. Defaults to 60.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot; ## We are facing High Demand at the moment.</span>
+
+<span class="sd">    Currently we are at free tier,</span>
+<span class="sd">    Please wait untill the API is back live.</span>
+<span class="sd">    If you feel this tool is useful, please contact us:</span>
+
+<span class="sd">    Thank you for your patience Please Wait for 60 seconds.&quot;&quot;&quot;</span>
+    <span class="p">)</span>
+    <span class="n">ph</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">secs</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">mm</span><span class="p">,</span> <span class="n">ss</span> <span class="o">=</span> <span class="n">secs</span> <span class="o">//</span> <span class="mi">60</span><span class="p">,</span> <span class="n">secs</span> <span class="o">%</span> <span class="mi">60</span>
+        <span class="n">ph</span><span class="o">.</span><span class="n">metric</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">mm</span><span class="si">:</span><span class="s2"> 02d</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">ss</span><span class="si">:</span><span class="s2"> 02d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="disclaimer">
+<a class="viewcode-back" href="../../../../src.esynergy_open_rag.streamlit_components.html#src.esynergy_open_rag.streamlit_components.streamlit_support.disclaimer">[docs]</a>
+<span class="k">def</span> <span class="nf">disclaimer</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Display a disclaimer message.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        **This Copilot is in beta!** While it can help with studying, the information might not always be perfect.</span>
+<span class="sd">        We recommend using it alongside other resources for the best results.\n</span>
+<span class="sd">        **Basically:** We&#39;re still learning, so double-check everything and use it as a study buddy, not your only</span>
+<span class="sd">        teacher. Good luck with your studies!</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="p">)</span>
+    <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">expander</span><span class="p">(</span><span class="s2">&quot;Disclaimer&quot;</span><span class="p">,</span> <span class="n">expanded</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The information provided by the Sales Copilot is for general informational and educational purposes only.</span>
+<span class="sd">        All information provided by the Copilot is in good faith; however, we make no representation or warranty of</span>
+<span class="sd">        any kind, express or implied, regarding the accuracy, adequacy, validity, reliability, availability, or</span>
+<span class="sd">        completeness of any information provided by the Copilot. Under no circumstance shall we have any liability</span>
+<span class="sd">        to you for any loss or damage of any kind incurred as a result of the use of the Copilot or reliance on any</span>
+<span class="sd">        information provided by it. Your use of the Copilot and your reliance on any information provided by it</span>
+<span class="sd">        is solely at your own risk.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Adrian Gonzalez.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>

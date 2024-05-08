@@ -58,8 +58,7 @@ def chat_here(placeholder):
                     )
                     if selected:
                         placeholder.empty()
-                        # ToDo: Add the relevant function
-                        update_sidebar(selected, placeholder, message=message)
+                        update_sidebar(selected, message=message, placeholder=placeholder)
 
     # Accept user input
     if prompt := st.chat_input("What is up?"):

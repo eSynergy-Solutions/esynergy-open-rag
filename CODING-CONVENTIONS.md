@@ -13,29 +13,24 @@ For instructions on using those tools with your IDE, see:
 
 ## Linting
 
-Open RAG uses [Flake8](https://flake8.pycqa.org/en/latest/) and [PyRight](https://github.com/microsoft/pyright) for code linting and type checking. Please set up Flake8 and PyRight prior so that all your contributions to Open RAG will be linted properly.
+Open RAG uses [Flake8](https://flake8.pycqa.org/en/latest/) for code linting and type checking. Please set up Flake8 prior so that all your contributions to Open RAG will be linted properly.
 
-For instructions on using Flake8 and PyRight tools with VSCode:
+For instructions on using Flake8 tool with VSCode:
 
 - [Flake8 for VSCode](https://code.visualstudio.com/docs/python/linting)
-- [PyRight for VSCode](https://marketplace.visualstudio.com/items?itemName=ms-python.vscode-pylance)
 
-For instructions on using Flake8 and PyRight tools with PyCharm, see:
+For instructions on using Flake8 tool with PyCharm, see:
 
 - [Installing third-party tools in PyCharm](https://www.jetbrains.com/help/pycharm/configuring-third-party-tools.html#remote-ext-tools)
 
 ## Pre-Commit Hooks
 
-Open RAG uses [pre-commit](https://pre-commit.com/) to run Black, ISort, Flake8 and PyRight (and some other minor hooks) before each commit.
+Open RAG uses [pre-commit](https://pre-commit.com/) to run Black, ISort, Flake8 before each commit.
 
 To do so, install Open RAG's dependencies with `cd src/ && poetry install` and then install the hook by running `pre-commit install`
 
-## Data classes
-
-Use `pydantic.BaseModel` instead of Python `dataclasses` when possible. Pydantic performs data validation whereas Python `dataclasses` just reduce boilerplate code like defining `__init__()`
-
 ## Imports
 
-Use absolute imports whenever possible. For example, instead of `from . import foo`, use `from open rag import foo`
+Use absolute imports whenever possible. For example, instead of `from . import foo`, use `from esynergy_open_rag.config import foo`
 
 To help with that, pre-commit hook will automatically fix relative imports to absolute imports.
