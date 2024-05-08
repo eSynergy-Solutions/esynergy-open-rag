@@ -58,6 +58,7 @@ The **esynergy Open RAG** application employs a Retrieve-Augment Chatbot archite
 - **Retrievers**: Load retriever objects for databases and search engines like Astra DB, Supabase, Elasticsearch, and OpenSearch.
 - **Streamlit Components**: Simplify integration with Streamlit to build AI assistants efficiently.
 
+[Full documentation](https://esynergy-solutions.github.io/esynergy-open-rag/index.html#)
 
 ## Install
 ```bash
