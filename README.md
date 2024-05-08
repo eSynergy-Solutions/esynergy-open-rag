@@ -119,8 +119,11 @@ cd docs_generation
 make html
 
 # Replace html folder
-rm -rf html
-cp -r _build/html ./
+cd ..
+rm -rf docs/*
+cp -r docs_generation/_build/html/* ./docs/
+# Fixing style bug
+touch .nojekyll
 ```
 
 

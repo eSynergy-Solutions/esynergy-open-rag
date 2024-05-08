@@ -12,14 +12,6 @@ src.esynergy\_open\_rag.components.doc\_loaders.ingest module
    :undoc-members:
    :show-inheritance:
 
-src.esynergy\_open\_rag.components.doc\_loaders.ingest copy module
-------------------------------------------------------------------
-
-.. automodule:: src.esynergy_open_rag.components.doc_loaders.ingest copy
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 

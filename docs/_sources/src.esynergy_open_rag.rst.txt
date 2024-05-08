@@ -37,3 +37,11 @@ src.esynergy\_open\_rag.st\_app module
    :members:
    :undoc-members:
    :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: src.esynergy_open_rag
+   :members:
+   :undoc-members:
+   :show-inheritance:

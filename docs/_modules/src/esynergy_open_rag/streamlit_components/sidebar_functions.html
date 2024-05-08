@@ -76,18 +76,20 @@
 
 <div class="viewcode-block" id="update_sidebar">
 <a class="viewcode-back" href="../../../../src.esynergy_open_rag.streamlit_components.html#src.esynergy_open_rag.streamlit_components.sidebar_functions.update_sidebar">[docs]</a>
-<span class="k">def</span> <span class="nf">update_sidebar</span><span class="p">(</span><span class="n">selected</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">placeholder</span><span class="p">:</span> <span class="n">st</span><span class="o">.</span><span class="n">empty</span><span class="p">(),</span> <span class="n">message</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">update_sidebar</span><span class="p">(</span><span class="n">selected</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">placeholder</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Update the Streamlit sidebar with selected source information.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        selected (str): The selected source.</span>
-<span class="sd">        placeholder (streamlit.container._container_widget.WidgetsCollection): The placeholder container for the sidebar.</span>
 <span class="sd">        message (dict): The message containing source information.</span>
+<span class="sd">        placeholder (streamlit.container._container_widget.WidgetsCollection): The placeholder container for the sidebar.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        None</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">placeholder</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">placeholder</span> <span class="o">=</span> <span class="n">st</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
     <span class="k">with</span> <span class="n">st</span><span class="o">.</span><span class="n">sidebar</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">placeholder</span><span class="o">.</span><span class="n">container</span><span class="p">():</span>
             <span class="n">st</span><span class="o">.</span><span class="n">markdown</span><span class="p">(</span><span class="s2">&quot;## Selected Source&quot;</span><span class="p">)</span>

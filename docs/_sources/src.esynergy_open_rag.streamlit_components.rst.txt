@@ -19,3 +19,11 @@ src.esynergy\_open\_rag.streamlit\_components.streamlit\_support module
    :members:
    :undoc-members:
    :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: src.esynergy_open_rag.streamlit_components
+   :members:
+   :undoc-members:
+   :show-inheritance:
