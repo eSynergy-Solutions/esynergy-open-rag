@@ -1,18 +1,20 @@
 import streamlit as st
 
 
-def update_sidebar(selected: str, placeholder: st.empty(), message: dict):
+def update_sidebar(selected: str, message: dict, placeholder=None):
     """
     Update the Streamlit sidebar with selected source information.
 
     Args:
         selected (str): The selected source.
-        placeholder (streamlit.container._container_widget.WidgetsCollection): The placeholder container for the sidebar.
         message (dict): The message containing source information.
+        placeholder (streamlit.container._container_widget.WidgetsCollection): The placeholder container for the sidebar.
 
     Returns:
         None
     """
+    if placeholder is None:
+        placeholder = st.empty()
     with st.sidebar:
         with placeholder.container():
             st.markdown("## Selected Source")

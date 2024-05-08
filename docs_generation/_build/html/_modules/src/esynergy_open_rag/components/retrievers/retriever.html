@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.esynergy_open_rag.components.retrievers.retriever &mdash; Open RAG 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=19f00094" />
+
+
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+
+
+          <a href="../../../../../index.html" class="icon icon-home">
+            Open RAG
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../modules.html">src</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">Open RAG</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.esynergy_open_rag.components.retrievers.retriever</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <h1>Source code for src.esynergy_open_rag.components.retrievers.retriever</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains the configuration and setup for the retrievers used in the OrgChat application.</span>
+<span class="sd">It includes functions to create retriever objects for Supabase, Elasticsearch, and OpenSearch.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span> <span class="nn">boto3</span>
+<span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
+<span class="kn">from</span> <span class="nn">langchain.chains.llm</span> <span class="kn">import</span> <span class="n">LLMChain</span>
+<span class="kn">from</span> <span class="nn">langchain.prompts</span> <span class="kn">import</span> <span class="n">PromptTemplate</span>
+<span class="kn">from</span> <span class="nn">langchain.retrievers.multi_query</span> <span class="kn">import</span> <span class="n">MultiQueryRetriever</span>
+<span class="kn">from</span> <span class="nn">langchain_astradb</span> <span class="kn">import</span> <span class="n">AstraDBVectorStore</span>
+<span class="kn">from</span> <span class="nn">langchain_community.vectorstores</span> <span class="kn">import</span> <span class="n">OpenSearchVectorSearch</span>
+<span class="kn">from</span> <span class="nn">langchain_core.output_parsers</span> <span class="kn">import</span> <span class="n">BaseOutputParser</span>
+<span class="kn">from</span> <span class="nn">opensearchpy</span> <span class="kn">import</span> <span class="n">RequestsHttpConnection</span>
+<span class="kn">from</span> <span class="nn">requests_aws4auth</span> <span class="kn">import</span> <span class="n">AWS4Auth</span>
+
+<span class="kn">from</span> <span class="nn">esynergy_open_rag.components.llms.llm</span> <span class="kn">import</span> <span class="n">LLM</span>
+
+<span class="n">load_dotenv</span><span class="p">()</span>
+
+<span class="n">src</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">Path</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+<span class="n">os</span><span class="o">.</span><span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="LineListOutputParser">
+<a class="viewcode-back" href="../../../../../src.esynergy_open_rag.components.retrievers.html#src.esynergy_open_rag.components.retrievers.retriever.LineListOutputParser">[docs]</a>
+<span class="k">class</span> <span class="nc">LineListOutputParser</span><span class="p">(</span><span class="n">BaseOutputParser</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Output parser for a list of lines.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LineListOutputParser.parse">
+<a class="viewcode-back" href="../../../../../src.esynergy_open_rag.components.retrievers.html#src.esynergy_open_rag.components.retrievers.retriever.LineListOutputParser.parse">[docs]</a>
+    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parses the given text and returns a LineList object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            text (str): The text to be parsed.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            LineList: The parsed LineList object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;parsing text: </span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">line</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span> <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">and</span> <span class="s2">&quot;alternative&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">line</span> <span class="ow">and</span> <span class="s2">&quot;original question&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">line</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">lines</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="Retriever">
+<a class="viewcode-back" href="../../../../../src.esynergy_open_rag.components.retrievers.html#src.esynergy_open_rag.components.retrievers.retriever.Retriever">[docs]</a>
+<span class="k">class</span> <span class="nc">Retriever</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">llm</span> <span class="o">=</span> <span class="n">LLM</span><span class="p">(</span><span class="n">model_type</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;MODEL_TYPE&quot;</span><span class="p">),</span> <span class="n">model_name</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;LLM_MODEL&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">llm</span>
+
+        <span class="n">output_parser</span> <span class="o">=</span> <span class="n">LineListOutputParser</span><span class="p">()</span>
+
+        <span class="n">QUERY_PROMPT</span> <span class="o">=</span> <span class="n">PromptTemplate</span><span class="p">(</span>
+            <span class="n">input_variables</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;question&quot;</span><span class="p">],</span>
+            <span class="n">template</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;You are an AI language model assistant for the consulting company esynergy who have various clients. Your task is to generate one</span>
+<span class="s2">            different versions of the given user question to retrieve relevant documents from a vector</span>
+<span class="s2">            database. By generating one different perspectives on the user question, your goal is to help</span>
+<span class="s2">            the user overcome some of the limitations of the distance-based similarity search.</span>
+<span class="s2">            Provide these alternative one questions separated by newlines. also do not change the context of the questions and do not generate more number of questions. Also include the original question also as the first question.</span>
+<span class="s2">            Original question: </span><span class="si">{question}</span><span class="s2">&quot;&quot;&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">llm_chain</span> <span class="o">=</span> <span class="n">LLMChain</span><span class="p">(</span><span class="n">llm</span><span class="o">=</span><span class="n">llm</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="n">QUERY_PROMPT</span><span class="p">,</span> <span class="n">output_parser</span><span class="o">=</span><span class="n">output_parser</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Retriever.get_retriever">
+<a class="viewcode-back" href="../../../../../src.esynergy_open_rag.components.retrievers.html#src.esynergy_open_rag.components.retrievers.retriever.Retriever.get_retriever">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_retriever</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">retriever_name</span><span class="p">,</span> <span class="n">embeddings</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a retriever object based on the specified retriever name.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            retriever_name (str): The name of the retriever.</span>
+<span class="sd">            embeddings: The embeddings to be used for retrieval.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The retriever object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">retriever_name</span> <span class="o">==</span> <span class="s2">&quot;supabase&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_supabase_retriever</span><span class="p">(</span><span class="n">embeddings</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">retriever_name</span> <span class="o">==</span> <span class="s2">&quot;elasticsearch&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_elastic_retriever</span><span class="p">(</span><span class="n">embeddings</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">retriever_name</span> <span class="o">==</span> <span class="s2">&quot;opensearch&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_opensearch_retriever</span><span class="p">(</span><span class="n">embeddings</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">retriever_name</span> <span class="o">==</span> <span class="s2">&quot;astradb&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_astradb_retriever</span><span class="p">(</span><span class="n">embeddings</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid retriever name: </span><span class="si">{</span><span class="n">retriever_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Retriever.get_supabase_retriever">
+<a class="viewcode-back" href="../../../../../src.esynergy_open_rag.components.retrievers.html#src.esynergy_open_rag.components.retrievers.retriever.Retriever.get_supabase_retriever">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_supabase_retriever</span><span class="p">(</span><span class="n">embeddings</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Retriever.get_elastic_retriever">
+<a class="viewcode-back" href="../../../../../src.esynergy_open_rag.components.retrievers.html#src.esynergy_open_rag.components.retrievers.retriever.Retriever.get_elastic_retriever">[docs]</a>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_elastic_retriever</span><span class="p">(</span><span class="n">embeddings</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="Retriever.get_astradb_retriever">
+<a class="viewcode-back" href="../../../../../src.esynergy_open_rag.components.retrievers.html#src.esynergy_open_rag.components.retrievers.retriever.Retriever.get_astradb_retriever">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_astradb_retriever</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">embeddings</span><span class="p">,</span>
+        <span class="n">llm_chain</span><span class="p">:</span> <span class="n">LLMChain</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">llm_chain</span><span class="p">:</span>
+            <span class="n">llm_chain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm_chain</span>
+
+        <span class="n">collection_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;ASTRA_DB_COLLECTION&quot;</span><span class="p">)</span>
+        <span class="n">namespace</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;ASTRA_DB_KEYSPACE&quot;</span><span class="p">)</span>
+        <span class="n">astra_url</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;ASTRA_DB_API_ENDPOINT&quot;</span><span class="p">)</span>
+
+        <span class="n">vstore</span> <span class="o">=</span> <span class="n">AstraDBVectorStore</span><span class="p">(</span>
+            <span class="n">embedding</span><span class="o">=</span><span class="n">embeddings</span><span class="p">,</span>
+            <span class="n">collection_name</span><span class="o">=</span><span class="n">collection_name</span><span class="p">,</span>
+            <span class="n">token</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;ASTRA_DB_APPLICATION_TOKEN&quot;</span><span class="p">],</span>
+            <span class="n">api_endpoint</span><span class="o">=</span><span class="n">astra_url</span><span class="p">,</span>
+            <span class="n">namespace</span><span class="o">=</span><span class="n">namespace</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">retriever</span> <span class="o">=</span> <span class="n">vstore</span><span class="o">.</span><span class="n">as_retriever</span><span class="p">(</span><span class="n">search_type</span><span class="o">=</span><span class="s2">&quot;mmr&quot;</span><span class="p">,</span> <span class="n">search_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;k&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">})</span>
+
+        <span class="n">retriever_from_llm</span> <span class="o">=</span> <span class="n">MultiQueryRetriever</span><span class="p">(</span>
+            <span class="n">retriever</span><span class="o">=</span><span class="n">retriever</span><span class="p">,</span>
+            <span class="n">llm_chain</span><span class="o">=</span><span class="n">llm_chain</span><span class="p">,</span>
+            <span class="n">parser_key</span><span class="o">=</span><span class="s2">&quot;lines&quot;</span><span class="p">,</span>
+            <span class="n">include_original</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># make a parser for the output to remove empty lines</span>
+        <span class="k">return</span> <span class="n">retriever_from_llm</span></div>
+
+
+<div class="viewcode-block" id="Retriever.get_opensearch_retriever">
+<a class="viewcode-back" href="../../../../../src.esynergy_open_rag.components.retrievers.html#src.esynergy_open_rag.components.retrievers.retriever.Retriever.get_opensearch_retriever">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_opensearch_retriever</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">embeddings</span><span class="p">,</span>
+        <span class="n">llm_chain</span><span class="p">:</span> <span class="n">LLMChain</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns an OpenSearch retriever object configured with the specified parameters.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        - embeddings: The embedding function used for vector search.</span>
+<span class="sd">        - index_name: The name of the index to search in OpenSearch. Default is &quot;sharepoint_s3_bid_index2&quot;.</span>
+<span class="sd">        - opensearch_url: The URL of the OpenSearch endpoint. Default is &quot;https://bfkxqtzf33xbb7sb6jcl.us-east-1.aoss.amazonaws.com&quot;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        - retriever_from_llm: The configured OpenSearch retriever object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">llm_chain</span><span class="p">:</span>
+            <span class="n">llm_chain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">llm_chain</span>
+
+        <span class="n">index_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;OPENSEARCH_INDEX_NAME&quot;</span><span class="p">)</span>
+        <span class="n">opensearch_url</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;OPENSEARCH_URL&quot;</span><span class="p">)</span>
+
+        <span class="n">credentials</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span><span class="o">.</span><span class="n">get_credentials</span><span class="p">()</span>
+        <span class="n">region</span> <span class="o">=</span> <span class="s2">&quot;us-east-1&quot;</span>
+        <span class="n">service</span> <span class="o">=</span> <span class="s2">&quot;aoss&quot;</span>
+        <span class="n">awsauth</span> <span class="o">=</span> <span class="n">AWS4Auth</span><span class="p">(</span>
+            <span class="n">credentials</span><span class="o">.</span><span class="n">access_key</span><span class="p">,</span>
+            <span class="n">credentials</span><span class="o">.</span><span class="n">secret_key</span><span class="p">,</span>
+            <span class="n">region</span><span class="p">,</span>
+            <span class="n">service</span><span class="p">,</span>
+            <span class="n">session_token</span><span class="o">=</span><span class="n">credentials</span><span class="o">.</span><span class="n">token</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">vector_store</span> <span class="o">=</span> <span class="n">OpenSearchVectorSearch</span><span class="p">(</span>
+            <span class="n">embedding_function</span><span class="o">=</span><span class="n">embeddings</span><span class="p">,</span>
+            <span class="n">index_name</span><span class="o">=</span><span class="n">index_name</span><span class="p">,</span>
+            <span class="n">opensearch_url</span><span class="o">=</span><span class="n">opensearch_url</span><span class="p">,</span>
+            <span class="n">http_auth</span><span class="o">=</span><span class="n">awsauth</span><span class="p">,</span>
+            <span class="n">timeout</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+            <span class="n">use_ssl</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">verify_certs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">connection_class</span><span class="o">=</span><span class="n">RequestsHttpConnection</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">retriever</span> <span class="o">=</span> <span class="n">vector_store</span><span class="o">.</span><span class="n">as_retriever</span><span class="p">(</span><span class="n">search_type</span><span class="o">=</span><span class="s2">&quot;mmr&quot;</span><span class="p">,</span> <span class="n">search_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;k&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">})</span>
+
+        <span class="n">retriever_from_llm</span> <span class="o">=</span> <span class="n">MultiQueryRetriever</span><span class="p">(</span>
+            <span class="n">retriever</span><span class="o">=</span><span class="n">retriever</span><span class="p">,</span>
+            <span class="n">llm_chain</span><span class="o">=</span><span class="n">llm_chain</span><span class="p">,</span>
+            <span class="n">parser_key</span><span class="o">=</span><span class="s2">&quot;lines&quot;</span><span class="p">,</span>
+            <span class="n">include_original</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># make a parser for the output to remove empty lines</span>
+        <span class="k">return</span> <span class="n">retriever_from_llm</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Adrian Gonzalez.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>

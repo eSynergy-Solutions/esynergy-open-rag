@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.esynergy_open_rag.components.embeddings.embedding &mdash; Open RAG 0.0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=19f00094" />
+
+
+  <!--[if lt IE 9]>
+    <script src="../../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+
+        <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../../_static/documentation_options.js?v=d45e8c67"></script>
+        <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+</head>
+
+<body class="wy-body-for-nav">
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+
+
+          <a href="../../../../../index.html" class="icon icon-home">
+            Open RAG
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../modules.html">src</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">Open RAG</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.esynergy_open_rag.components.embeddings.embedding</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+
+  <h1>Source code for src.esynergy_open_rag.components.embeddings.embedding</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">import</span> <span class="nn">boto3</span>
+<span class="kn">from</span> <span class="nn">dotenv</span> <span class="kn">import</span> <span class="n">load_dotenv</span>
+<span class="kn">from</span> <span class="nn">langchain_community.embeddings</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">BedrockEmbeddings</span><span class="p">,</span>
+    <span class="n">GPT4AllEmbeddings</span><span class="p">,</span>
+    <span class="n">HuggingFaceInstructEmbeddings</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">esynergy_open_rag.components.utils.utils</span> <span class="kn">import</span> <span class="n">check_env_variables</span>
+
+<span class="n">load_dotenv</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="Embedding">
+<a class="viewcode-back" href="../../../../../src.esynergy_open_rag.components.embeddings.html#src.esynergy_open_rag.components.embeddings.embedding.Embedding">[docs]</a>
+<span class="k">class</span> <span class="nc">Embedding</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for loading different types of embeddings based on the provided model type and name.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model_type (str): The type of the model (e.g., &quot;llamacpp&quot;, &quot;gpt4all&quot;, &quot;openai&quot;, &quot;fireworks&quot;, &quot;huggingface-instruct&quot;).</span>
+<span class="sd">        model_name (str): The name of the model.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        model_type (str): The type of the model.</span>
+<span class="sd">        model_name (str): The name of the model.</span>
+<span class="sd">        embedding: The loaded embedding object based on the provided model type and name.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the provided model type is not supported.</span>
+<span class="sd">        KeyError: If required environment variables are not set (for certain model types).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">model_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize an Embedding instance.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            model_type (str): The type of the model (e.g., &quot;llamacpp&quot;, &quot;gpt4all&quot;, &quot;openai&quot;, &quot;fireworks&quot;, &quot;huggingface-instruct&quot;).</span>
+<span class="sd">            model_name (str): The name of the model.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the provided model type is not supported.</span>
+<span class="sd">            KeyError: If required environment variables are not set (for certain model types).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_type</span> <span class="o">=</span> <span class="n">model_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_name</span> <span class="o">=</span> <span class="n">model_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embedding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_embedding</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_load_embedding</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load the embedding based on the provided model type.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            The loaded embedding object.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the provided model type is not supported.</span>
+<span class="sd">            KeyError: If required environment variables are not set (for certain model types).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;llamacpp&quot;</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading embedding </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">model_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_llamacpp</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;gpt4all&quot;</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading embedding </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">model_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_gpt4all</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;openai&quot;</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading embedding </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">model_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_openai</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;fireworks&quot;</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading embedding </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">model_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_fireworks</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;huggingface-instruct&quot;</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading embedding </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">model_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_huggingface_instruct</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_type</span> <span class="o">==</span> <span class="s2">&quot;bedrock&quot;</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loading embedding </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">model_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_bedrock</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Tried loading embedding </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">model_type</span><span class="si">}</span><span class="s2"> not supported.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Model type not supported&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_load_bedrock</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load Bedrock embeddings.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Bedrock embeddings.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            KeyError: If required environment variables are not set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">required_env_vars</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;AWS_ACCESS_KEY_ID&quot;</span><span class="p">,</span> <span class="s2">&quot;AWS_SECRET_ACCESS_KEY&quot;</span><span class="p">]</span>
+        <span class="n">check_env_variables</span><span class="p">(</span><span class="n">required_env_vars</span><span class="p">)</span>
+        <span class="n">bedrock</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">client</span><span class="p">(</span><span class="s2">&quot;bedrock-runtime&quot;</span><span class="p">,</span> <span class="n">region_name</span><span class="o">=</span><span class="s2">&quot;us-east-1&quot;</span><span class="p">)</span>
+        <span class="n">embeddings</span> <span class="o">=</span> <span class="n">BedrockEmbeddings</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="n">bedrock</span><span class="p">,</span> <span class="n">model_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">model_name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">embeddings</span>
+
+    <span class="k">def</span> <span class="nf">_load_huggingface_instruct</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load Hugging Face Instruct embeddings.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Hugging Face Instruct embeddings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">embeddings</span> <span class="o">=</span> <span class="n">HuggingFaceInstructEmbeddings</span><span class="p">(</span><span class="n">query_instruction</span><span class="o">=</span><span class="s2">&quot;Represent the query for retrieval: &quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">embeddings</span>
+
+    <span class="k">def</span> <span class="nf">_load_llamacpp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load Llamacpp embeddings.</span>
+
+<span class="sd">        Not implemented yet.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">_load_gpt4all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load GPT4All embeddings.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            GPT4All embeddings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">embeddings</span> <span class="o">=</span> <span class="n">GPT4AllEmbeddings</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">embeddings</span>
+
+    <span class="k">def</span> <span class="nf">_load_openai</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load OpenAI embeddings.</span>
+
+<span class="sd">        Not implemented yet.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">_load_fireworks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load Fireworks embeddings.</span>
+
+<span class="sd">        Not implemented yet.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Adrian Gonzalez.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+</body>
+</html>
