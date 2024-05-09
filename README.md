@@ -67,7 +67,7 @@ pip install git+https://${PIP_GIT_USER}:${PIP_GIT_TOKEN}@github.com/eSynergy-Sol
 
 ## Usage
 ```bash
-# Create .env file with the following secrets (Some configs may not be required):
+# Create .env file with the following secrets
 # MODEL_TYPE=
 # LLM_MODEL=
 # EMBEDDING_MODEL=
