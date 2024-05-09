@@ -68,19 +68,19 @@ pip install git+https://${PIP_GIT_USER}:${PIP_GIT_TOKEN}@github.com/eSynergy-Sol
 ## Usage
 ```bash
 # Create .env file with the following secrets
-# MODEL_TYPE=
-# LLM_MODEL=
-# EMBEDDING_MODEL=
-#
-# RETRIEVER_NAME=
-#
-# AWS_ACCESS_KEY_ID=
-# AWS_SECRET_ACCESS_KEY=
-#
-# ASTRA_DB_API_ENDPOINT=
-# ASTRA_DB_APPLICATION_TOKEN=
-# ASTRA_DB_KEYSPACE=
-# ASTRA_DB_COLLECTION=
+MODEL_TYPE=bedrock
+LLM_MODEL=anthropic.claude-v2
+EMBEDDING_MODEL=amazon.titan-embed-text-v1
+
+RETRIEVER_NAME=astradb
+
+AWS_ACCESS_KEY_ID=<aws_access_key>
+AWS_SECRET_ACCESS_KEY=<aws_secret_key>
+
+ASTRA_DB_API_ENDPOINT=<astra_url>
+ASTRA_DB_APPLICATION_TOKEN=<astra_token>
+ASTRA_DB_KEYSPACE=dev
+ASTRA_DB_COLLECTION=sandbox_sharepoint_docs
 ```
 ```python
 import logging
