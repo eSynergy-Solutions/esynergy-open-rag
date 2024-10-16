@@ -6,6 +6,14 @@
 
 #
 
+## Ongoing Tasks
+
+<ul>
+    <li>Adding support for Azure OpenAI</li>
+    <li>Check if support for Supabase, Elasticsearch, and OpenSearch exists</li>
+    <li>Add support for Supabase, Elasticsearch, and OpenSearch, if not supported yet</li>
+</ul>
+
 ## Architecture Overview
 
 **esynergy Open RAG** is a versatile framework designed to streamline the creation of RAG-based AI applications. By abstracting the complexities involved in setting up various components, it offers a simplified approach to developing sophisticated AI solutions. The framework allows developers to configure essential elements through environment variables, enabling rapid deployment and customization of Retrieve-Augment-Generate (RAG) systems. Here are the key components supported by the **esynergy Open RAG** framework:
@@ -61,11 +69,13 @@ The **esynergy Open RAG** application employs a Retrieve-Augment Chatbot archite
 [Full documentation](https://esynergy-solutions.github.io/esynergy-open-rag/index.html#)
 
 ## Install
+
 ```bash
 pip install git+https://${PIP_GIT_USER}:${PIP_GIT_TOKEN}@github.com/eSynergy-Solutions/esynergy-open-rag.git@${PIP_GIT_BRANCH}
 ```
 
 ## Usage
+
 ```bash
 # Create .env file with the following secrets (Some configs may not be required):
 # MODEL_TYPE=
@@ -82,6 +92,7 @@ pip install git+https://${PIP_GIT_USER}:${PIP_GIT_TOKEN}@github.com/eSynergy-Sol
 # ASTRA_DB_KEYSPACE=
 # ASTRA_DB_COLLECTION=
 ```
+
 ```python
 import logging
 from esynergy_open_rag.config import chain
@@ -91,6 +102,7 @@ logging.info(response)
 ```
 
 ## Test
+
 ```bash
 # Create .env file with the following secrets (Some configs may not be required):
 # MODEL_TYPE=
@@ -112,6 +124,7 @@ bash scripts/build_and_test.sh
 ```
 
 ## Generate Docs
+
 ```bash
 # Auto generate docs
 poetry run sphinx-apidoc -o docs_generation src -f
@@ -127,6 +140,6 @@ cp -r docs_generation/_build/html/* ./docs/
 touch .nojekyll
 ```
 
-
 ## 📑 License
+
 esynergy Open RAG is distributed under the MIT License. See [LICENSE.md](https://github.com/robusta-dev/robusta/blob/master/LICENSE) for more information.
